@@ -2,99 +2,43 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AM Studio - Pro Image Resizer & Compressor</title>
+  <title>AM Studio - Image Resizer</title>
   <style>
-    :root {
-      --primary: #6366f1;
-      --primary-hover: #4f46e5;
-      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-      --card-bg: rgba(30, 41, 59, 0.75);
-      --text: #f8fafc;
-      --text-light: #94a3b8;
-      --success: #22c55e;
-    }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: var(--bg-gradient);
-      color: var(--text);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
-    }
-    .card {
-      background: var(--card-bg);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 35px;
-      border-radius: 20px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-      width: 100%;
-      max-width: 520px;
-      text-align: center;
-    }
-    .brand-tag {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: #818cf8;
-      font-weight: 700;
-      margin-bottom: 5px;
-    }
-    h2 {
-      color: #fff;
-      margin-bottom: 8px;
-      font-size: 26px;
-    }
-    p {
-      color: var(--text-light);
-      font-size: 14px;
-      margin-bottom: 25px;
-    }
-    .upload-box {
-      border: 2px dashed rgba(255, 255, 255, 0.2);
-      padding: 25px;
-      border-radius: 14px;
-      margin-bottom: 20px;
-      background: rgba(255, 255, 255, 0.03);
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .upload-box:hover {
-      border-color: var(--primary);
-      background: rgba(99, 102, 241, 0.05);
-    }
-    input[type="file"] {
-      color: var(--text-light);
-      font-size: 14px;
-    }
-    .controls {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-      margin: 20px 0;
-      text-align: left;
-    }
-    .control-group label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-light);
-      display: block;
-      margin-bottom: 5px;
-    }
-    .control-group input {
-      width: 100%;
-      padding: 10px;
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #fff;
-      border-radius: 8px;
-      font-size: 14px;
-      box-sizing: border-box;
-    }
-    .quality-section {
-      text-align: left;
-      margin-bottom: 20px;
+    body { font-family: sans-serif; background: #0f172a; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .card { background: #1e293b; padding: 30px; border-radius: 15px; width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    h2 { color: #818cf8; margin-bottom: 5px; }
+    input, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: none; }
+    button { background: #6366f1; color: #fff; font-weight: bold; cursor: pointer; }
+    button:hover { background: #4f46e5; }
+    #info { color: #4ade80; font-size: 14px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h2>AM Studio</h2>
+  <p style="font-size:13px; color:#94a3b8;">Pro Image Compressor</p>
+  <input type="file" id="upload" accept="image/*">
+  <button onclick="compress()">Compress Image</button>
+  <div id="info"></div>
+  <canvas id="canvas" style="display:none;"></canvas>
+  <a id="download" style="display:none;" download="optimized.jpg"><button style="background:#22c55e;">Download</button></a>
+</div>
+<script>
+  let img = new Image(), origSize = 0;
+  document.getElementById('upload').addEventListener('change', e => {
+    let f = e.target.files[0];
+    if(f) { origSize = f.size; let r = new FileReader(); r.onload = ev => img.src = ev.target.result; r.readAsDataURL(f); }
+  });
+  function compress() {
+    if(!img.src) return alert("Select image first!");
+    let c = document.getElementById('canvas'), ctx = c.getContext('2d');
+    c.width = img.width; c.height = img.height;
+    ctx.drawImage(img, 0, 0);
+    let url = c.toDataURL('image/jpeg', 0.8);
+    let newSize = Math.round((url.length - 23) * 3 / 4);
+    document.getElementById('info').innerText = `Done! ${(origSize/1024).toFixed(1)}KB ➔ ${(newSize/1024).toFixed(1)}KB`;
+    let d = document.getElementById('download'); d.href = url; d.style.display = 'block';
+  }
+</script>
+</body>
+</html>
