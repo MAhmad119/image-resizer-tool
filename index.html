@@ -2,43 +2,129 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>AM Studio - Image Resizer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pro Image Resizer & Compressor - Free Online Tool</title>
   <style>
-    body { font-family: sans-serif; background: #0f172a; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    .card { background: #1e293b; padding: 30px; border-radius: 15px; width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    h2 { color: #818cf8; margin-bottom: 5px; }
-    input, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: none; }
-    button { background: #6366f1; color: #fff; font-weight: bold; cursor: pointer; }
-    button:hover { background: #4f46e5; }
-    #info { color: #4ade80; font-size: 14px; margin-top: 10px; }
+    :root { --primary: #2563eb; --primary-hover: #1d4ed8; --bg: #f8fafc; --card-bg: #ffffff; --text: #1e293b; --text-light: #64748b; --success: #16a34a; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+    .card { background: var(--card-bg); padding: 35px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.05); width: 100%; max-width: 520px; text-align: center; }
+    h2 { color: var(--primary); margin-bottom: 8px; font-size: 24px; }
+    p { color: var(--text-light); font-size: 14px; margin-bottom: 25px; }
+    
+    .upload-box { border: 2px dashed #cbd5e1; padding: 25px; border-radius: 12px; margin-bottom: 20px; background: #fcfcfc; cursor: pointer; transition: 0.3s; }
+    .upload-box:hover { border-color: var(--primary); background: #f1f5f9; }
+    
+    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; text-align: left; }
+    .control-group label { font-size: 12px; font-weight: 600; color: var(--text-light); display: block; margin-bottom: 5px; }
+    .control-group input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+    
+    .quality-section { text-align: left; margin-bottom: 20px; }
+    .quality-section label { font-size: 12px; font-weight: 600; color: var(--text-light); display: block; margin-bottom: 5px; }
+    .quality-section input[type="range"] { width: 100%; cursor: pointer; }
+
+    button.btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; font-size: 15px; transition: 0.2s; }
+    button.btn:hover { background: var(--primary-hover); }
+    button.download-btn { background: var(--success); margin-top: 15px; text-decoration: none; display: inline-block; }
+    button.download-btn:hover { background: #15803d; }
+
+    #result-info { margin-top: 15px; font-size: 14px; font-weight: 500; color: var(--success); display: none; }
+    canvas { display: none; }
   </style>
 </head>
 <body>
+
 <div class="card">
-  <h2>AM Studio</h2>
-  <p style="font-size:13px; color:#94a3b8;">Pro Image Compressor</p>
-  <input type="file" id="upload" accept="image/*">
-  <button onclick="compress()">Compress Image</button>
-  <div id="info"></div>
-  <canvas id="canvas" style="display:none;"></canvas>
-  <a id="download" style="display:none;" download="optimized.jpg"><button style="background:#22c55e;">Download</button></a>
+  <h2>Image Resizer & Compressor</h2>
+  <p>Instantly resize, compress, and optimize your images for free.</p>
+  
+  <div class="upload-box">
+    <input type="file" id="upload" accept="image/*" style="width: 100%; cursor: pointer;">
+  </div>
+  
+  <div class="controls">
+    <div class="control-group">
+      <label>New Width (px)</label>
+      <input type="number" id="width" placeholder="Original Width">
+    </div>
+    <div class="control-group">
+      <label>New Height (px)</label>
+      <input type="number" id="height" placeholder="Original Height">
+    </div>
+  </div>
+
+  <div class="quality-section">
+    <label>Compression Quality: <span id="qualityVal">80</span>%</label>
+    <input type="range" id="quality" min="10" max="100" value="80" oninput="document.getElementById('qualityVal').innerText = this.value">
+  </div>
+
+  <button class="btn" onclick="resizeImage()">Process Image</button>
+  
+  <div id="result-info"></div>
+  
+  <canvas id="canvas"></canvas>
+  <a id="downloadLink" style="display:none;" download="compressed-image.jpg">
+    <button class="btn download-btn">Download Optimized Image</button>
+  </a>
 </div>
+
 <script>
-  let img = new Image(), origSize = 0;
-  document.getElementById('upload').addEventListener('change', e => {
-    let f = e.target.files[0];
-    if(f) { origSize = f.size; let r = new FileReader(); r.onload = ev => img.src = ev.target.result; r.readAsDataURL(f); }
+  let img = new Image();
+  let originalSize = 0;
+
+  document.getElementById('upload').addEventListener('change', function(e) {
+    let file = e.target.files[0];
+    if(file) {
+      originalSize = file.size;
+      let reader = new FileReader();
+      reader.onload = function(event) {
+        img.src = event.target.result;
+        img.onload = function() {
+          document.getElementById('width').value = img.width;
+          document.getElementById('height').value = img.height;
+        }
+      }
+      reader.readAsDataURL(file);
+    }
   });
-  function compress() {
-    if(!img.src) return alert("Select image first!");
-    let c = document.getElementById('canvas'), ctx = c.getContext('2d');
-    c.width = img.width; c.height = img.height;
-    ctx.drawImage(img, 0, 0);
-    let url = c.toDataURL('image/jpeg', 0.8);
-    let newSize = Math.round((url.length - 23) * 3 / 4);
-    document.getElementById('info').innerText = `Done! ${(origSize/1024).toFixed(1)}KB ➔ ${(newSize/1024).toFixed(1)}KB`;
-    let d = document.getElementById('download'); d.href = url; d.style.display = 'block';
+
+  function resizeImage() {
+    if (!img.src) {
+      alert("Pehle please koi image select karein!");
+      return;
+    }
+
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
+    
+    let w = parseInt(document.getElementById('width').value) || img.width;
+    let h = parseInt(document.getElementById('height').value) || img.height;
+    
+    canvas.width = w;
+    canvas.height = h;
+    
+    ctx.clearRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+    
+    let qualityInput = document.getElementById('quality').value / 100;
+    let dataUrl = canvas.toDataURL('image/jpeg', qualityInput);
+    
+    // Calculate new size approximately from base64 string
+    let head = 'data:image/jpeg;base64,';
+    let newSize = Math.round((dataUrl.length - head.length) * 3/4);
+    
+    let origMb = (originalSize / (1024*1024)).toFixed(2);
+    let newKb = (newSize / 1024).toFixed(1);
+    let origKb = (originalSize / 1024).toFixed(1);
+    
+    let infoDiv = document.getElementById('result-info');
+    infoDiv.style.display = 'block';
+    infoDiv.innerHTML = `Success! Original: ${origKb > 1024 ? origMb + ' MB' : origKb + ' KB'} ➔ Compressed: ${newKb} KB`;
+
+    let downloadLink = document.getElementById('downloadLink');
+    downloadLink.href = dataUrl;
+    downloadLink.style.display = 'block';
   }
 </script>
+
 </body>
 </html>
