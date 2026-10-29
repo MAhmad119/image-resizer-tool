@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fast Free Image Resizer & Compressor Tool</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f6f8; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .card { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
+    h2 { color: #1a73e8; margin-bottom: 20px; }
+    input[type="file"] { margin-bottom: 15px; }
+    .controls { display: flex; gap: 10px; margin: 15px 0; justify-content: center; }
+    input[type="number"] { width: 100px; padding: 8px; border: 1px solid #ccc; border-radius: 6px; text-align: center; }
+    button { background: #1a73e8; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
+    button:hover { background: #1557b0; }
+    canvas { display: none; }
+    #downloadBtn { display: none; margin-top: 15px; background: #34a853; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Image Resizer & Compressor</h2>
+  <p style="color: #666; font-size: 14px;">Resize and compress JPG/PNG photos instantly for free!</p>
+  
+  <input type="file" id="upload" accept="image/*">
+  
+  <div class="controls">
+    <div>
+      <label style="font-size: 12px;">Width (px):</label><br>
+      <input type="number" id="width" placeholder="Auto">
+    </div>
+    <div>
+      <label style="font-size: 12px;">Height (px):</label><br>
+      <input type="number" id="height" placeholder="Auto">
+    </div>
+  </div>
+
+  <button onclick="resizeImage()">Resize & Compress</button>
+  
+  <canvas id="canvas"></canvas>
+  <a id="downloadBtn" style="display:none; text-decoration:none;" download="resized-image.jpg">
+    <button style="background:#34a853;">Download Resized Image</button>
+  </a>
+</div>
+
+<script>
+  let img = new Image();
+  document.getElementById('upload').addEventListener('change', function(e) {
+    let file = e.target.files[0];
+    if(file) {
+      let reader = new FileReader();
+      reader.onload = function(event) {
+        img.src = event.target.result;
+      }
+      reader.readAsDataURL(file);
+    }
+  });
+
+  function resizeImage() {
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
+    let w = document.getElementById('width').value || img.width;
+    let h = document.getElementById('height').value || img.height;
+    
+    canvas.width = w;
+    canvas.height = h;
+    ctx.drawImage(img, 0, 0, w, h);
+    
+    let downloadBtn = document.getElementById('downloadBtn');
+    downloadBtn.href = canvas.toDataURL('image/jpeg', 0.8);
+    downloadBtn.style.display = 'block';
+  }
+</script>
+
+</body>
+</html>
